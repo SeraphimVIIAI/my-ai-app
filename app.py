@@ -2,76 +2,88 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# Config
+# 1. Config & Styling
 st.set_page_config(page_title="SnapDone Pro", page_icon="🎯")
 
-# Custom CSS για Premium Mobile Feel
 st.markdown("""
     <style>
+    /* Απόκρυψη Streamlit UI */
     #MainMenu, footer, header {visibility: hidden;}
-    .stApp { background: #121212; }
     
-    /* Container για το UI */
-    .app-box {
-        background: #1e1e1e;
-        border-radius: 25px;
-        padding: 25px;
-        border: 1px solid #333;
-        margin-bottom: 20px;
+    /* Φόντο με Gradient */
+    .stApp {
+        background: radial-gradient(circle at top, #1a1a1a, #000000);
+        color: white;
     }
-    
-    /* Τίτλος με Gradient */
-    .title-text {
-        background: linear-gradient(90deg, #00C853, #B2FF59);
+
+    /* Glassmorphism Card */
+    .main-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        margin-top: -50px;
+    }
+
+    /* Τίτλος με εφέ Neon */
+    .logo {
+        font-size: 50px;
+        font-weight: 900;
+        background: linear-gradient(to right, #00ff88, #00ccff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 40px;
+        text-shadow: 0px 10px 20px rgba(0, 255, 136, 0.3);
+    }
+
+    /* Επαγγελματικό Κουμπί */
+    .stButton>button {
+        background: linear-gradient(90deg, #00ff88 0%, #00bd68 100%);
+        border: none;
+        color: black;
         font-weight: 800;
-        text-align: center;
-        margin-bottom: 5px;
+        padding: 15px 30px;
+        border-radius: 50px;
+        width: 100%;
+        font-size: 18px;
+        text-transform: uppercase;
+        transition: 0.3s all;
     }
     
-    /* Στυλ Κάμερας */
+    .stButton>button:hover {
+        transform: scale(1.02);
+        box-shadow: 0px 0px 20px rgba(0, 255, 136, 0.6);
+    }
+
+    /* Στυλ για την κάμερα */
     div[data-testid="stCameraInput"] {
         border-radius: 20px;
-        overflow: hidden;
-        border: 2px solid #4CAF50;
-    }
-    
-    /* Premium Κουμπί */
-    .stButton>button {
-        background: #4CAF50;
-        color: white;
-        border-radius: 50px;
-        height: 55px;
-        font-size: 18px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        border: none;
-        box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+        border: 2px solid #00ff88;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# API
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# 2. Logic
+api_key = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# UI
-st.markdown('<h1 class="title-text">SnapDone</h1>', unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#aaa; margin-bottom:30px;'>Smart AI Document Scanner</p>", unsafe_allow_html=True)
+# 3. UI Layout
+st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
+st.markdown('<h1 class="logo">SnapDone</h1>', unsafe_allow_html=True)
+st.markdown('<p style="text-align:center; color:#888;">AI-Powered Personal Assistant</p>', unsafe_allow_html=True)
 
-# Camera Input
-image_data = st.camera_input("")
+st.markdown('<div class="main-card">', unsafe_allow_html=True)
+img_data = st.camera_input("")
 
-if image_data:
-    st.markdown('<div class="app-box">', unsafe_allow_html=True)
-    if st.button("ΕΠΕΞΕΡΓΑΣΙΑ ΜΕ AI ✨"):
-        with st.spinner("🧠 Το AI αναλύει την εικόνα..."):
-            img = Image.open(image_data)
-            prompt = "Είσαι ένας ψηφιακός βοηθός. Ανάλυσε την εικόνα. Αν είναι λογαριασμός βρες ποσό/ημερομηνία. Αν είναι σημείωση κάνε περίληψη. Απάντησε στα Ελληνικά με bullet points."
+if img_data:
+    if st.button("🚀 ΕΝΑΡΞΗ ΑΝΑΛΥΣΗΣ"):
+        with st.spinner("⏳ Επεξεργασία..."):
+            img = Image.open(img_data)
+            prompt = "Ανάλυσε την εικόνα σαν επαγγελματίας βοηθός. Δώσε τίτλο και 3 action items στα Ελληνικά με ωραία μορφοποίηση."
             response = model.generate_content([prompt, img])
             
-            st.success("Ανάλυση Ολοκληρώθηκε!")
-            st.markdown(f"<div style='color:white;'>{response.text}</div>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("### 📋 Αποτέλεσμα")
+            st.info(response.text)
+st.markdown('</div>', unsafe_allow_html=True)
