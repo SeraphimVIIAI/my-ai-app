@@ -349,18 +349,26 @@ st.markdown("""
 # Upload card
 st.markdown('<div class="glass">', unsafe_allow_html=True)
 
-uploaded = st.file_uploader(" ", type=["jpg", "jpeg", "png", "webp"])
+tab_cam, tab_gallery = st.tabs(["📷  Κάμερα", "🖼️  Γκαλερί"])
 
-if not uploaded:
-    st.markdown("""
-    <div class="up-hint">
-      <span class="uhi">📲</span>
-      <div class="uht">Φόρτωσε ή φωτογράφισε</div>
-      <div>λογαριασμό · κάρτα · έγγραφο · εισιτήριο</div>
-    </div>
-    """, unsafe_allow_html=True)
+with tab_cam:
+    camera_file = st.camera_input(" ")
+
+with tab_gallery:
+    gallery_file = st.file_uploader(" ", type=["jpg", "jpeg", "png", "webp"])
+    if not gallery_file:
+        st.markdown("""
+        <div class="up-hint">
+          <span class="uhi">📲</span>
+          <div class="uht">Φόρτωσε από τη συσκευή σου</div>
+          <div>λογαριασμό · κάρτα · έγγραφο · εισιτήριο</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
+
+# Προτεραιότητα: κάμερα > gallery
+uploaded = camera_file or gallery_file
 
 # ── If file uploaded ──
 if uploaded:
@@ -372,12 +380,13 @@ if uploaded:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # ── AUTO DETECT ──
-    if "detected_type" not in st.session_state or st.session_state.get("last_file") != uploaded.name:
+    file_key = getattr(uploaded, "name", "camera_snapshot")
+    if "detected_type" not in st.session_state or st.session_state.get("last_file") != file_key:
         with st.spinner("🔍 Ανίχνευση τύπου εικόνας…"):
             raw = ai(AUTO_DETECT_PROMPT, img).strip().upper().split()[0]
             detected = raw if raw in DETECT_INFO else "OTHER"
             st.session_state["detected_type"] = detected
-            st.session_state["last_file"] = uploaded.name
+            st.session_state["last_file"] = file_key
 
     detected = st.session_state["detected_type"]
     icon, label, sub = DETECT_INFO[detected]
