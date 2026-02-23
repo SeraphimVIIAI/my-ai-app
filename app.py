@@ -273,8 +273,11 @@ model = genai.GenerativeModel('gemini-1.5-flash-latest')
 # ─────────────────────────────────────────────
 def ai(prompt: str, img) -> str:
     import io as _io
+    # Μετατροπή σε RGB αν χρειάζεται (για PNG με transparency)
+    if img.mode in ("RGBA", "P", "LA"):
+        img = img.convert("RGB")
     buf = _io.BytesIO()
-    img.save(buf, format="JPEG")
+    img.save(buf, format="JPEG", quality=85)
     buf.seek(0)
     img_part = {"mime_type": "image/jpeg", "data": buf.getvalue()}
     r = model.generate_content([prompt + "\n\nΑπάντα πάντα στα Ελληνικά.", img_part])
