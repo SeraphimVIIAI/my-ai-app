@@ -237,6 +237,28 @@ st.markdown("""
 
 /* ── TEXT / MARKDOWN ── */
 .stMarkdown p, .stMarkdown li { color: rgba(255,255,255,.7) !important; font-size: 14px !important; }
+
+/* ── RADIO (input mode selector) ── */
+[data-testid="stRadio"] > div {
+    display: flex !important; gap: 8px !important;
+    background: rgba(0,0,0,.25) !important;
+    border-radius: 12px !important; padding: 4px !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    margin-bottom: 12px !important;
+}
+[data-testid="stRadio"] label {
+    flex: 1 !important; text-align: center !important;
+    border-radius: 9px !important; padding: 7px 4px !important;
+    cursor: pointer !important; transition: all .2s !important;
+    color: rgba(255,255,255,.5) !important; font-size: 13px !important;
+    font-weight: 500 !important;
+}
+[data-testid="stRadio"] label:has(input:checked) {
+    background: rgba(99,102,241,.35) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 10px rgba(99,102,241,.3) !important;
+}
+[data-testid="stRadio"] input[type=radio] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -349,48 +371,25 @@ st.markdown("""
 # Upload card
 st.markdown('<div class="glass">', unsafe_allow_html=True)
 
-# Δύο κουμπιά: Κάμερα (capture=environment) + Γκαλερί — δουλεύουν σε iOS/Android/Desktop
-st.markdown("""
-<style>
-.snap-btns { display:flex; gap:10px; margin-bottom:12px; }
-.snap-btns label {
-    flex:1; display:flex; flex-direction:column; align-items:center;
-    justify-content:center; gap:6px; padding:18px 8px;
-    background:rgba(99,102,241,.08);
-    border:1.5px dashed rgba(99,102,241,.45);
-    border-radius:16px; cursor:pointer;
-    color:rgba(255,255,255,.65);
-    font-family:'DM Sans',sans-serif; font-size:13px;
-    font-weight:500; text-align:center; line-height:1.3;
-    transition:all .22s;
-}
-.snap-btns label:hover {
-    background:rgba(99,102,241,.2);
-    border-color:rgba(99,102,241,.8); color:#fff;
-}
-.snap-btns label .bi { font-size:28px; }
-.snap-btns input[type=file] { display:none; }
-</style>
+st.markdown('<div class="sec-label" style="margin-top:0;">Φόρτωσε Εικόνα</div>', unsafe_allow_html=True)
 
-<div class="snap-btns">
-  <label for="snap_cam">
-    <span class="bi">📷</span>Κάμερα
-  </label>
-  <input type="file" id="snap_cam" accept="image/*" capture="environment">
+input_mode = st.radio(" ", ["📷 Κάμερα", "🖼️ Γκαλερί"], horizontal=True, label_visibility="collapsed")
 
-  <label for="snap_gal">
-    <span class="bi">🖼️</span>Γκαλερί
-  </label>
-  <input type="file" id="snap_gal" accept="image/*">
-</div>
-""", unsafe_allow_html=True)
-
-# Το Streamlit uploader με label κρυμμένο — χρησιμοποιείται ως backend receiver
-gallery_file = st.file_uploader("ή σύρε αρχείο εδώ ↓", type=["jpg","jpeg","png","webp"])
+uploaded = None
+if input_mode == "📷 Κάμερα":
+    uploaded = st.camera_input(" ", label_visibility="collapsed")
+else:
+    uploaded = st.file_uploader(" ", type=["jpg","jpeg","png","webp"], label_visibility="collapsed")
+    if not uploaded:
+        st.markdown("""
+        <div class="up-hint">
+          <span class="uhi">📲</span>
+          <div class="uht">Επέλεξε αρχείο</div>
+          <div>λογαριασμό · κάρτα · έγγραφο · εισιτήριο</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-uploaded = gallery_file
 
 # ── If file uploaded ──
 if uploaded:
