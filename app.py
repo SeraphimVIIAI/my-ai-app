@@ -1,68 +1,94 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-from fpdf import FPDF
-import base64
 
-# Page Config
-st.set_page_config(page_title="SnapDone Dashboard", page_icon="💼", layout="centered")
+# 1. Ρυθμίσεις Σελίδας
+st.set_page_config(page_title="SnapDone AI", page_icon="🎯", layout="centered")
 
-# Επαγγελματικό Dark UI
+# 2. Επαγγελματικό CSS για Mobile Application Look
 st.markdown("""
     <style>
+    /* Κρύβουμε τα περιττά του Streamlit */
     #MainMenu, footer, header {visibility: hidden;}
-    .stApp { background-color: #0b0e11; }
-    .stButton>button {
-        width: 100%; border-radius: 12px; height: 3.5em;
-        background: linear-gradient(135deg, #00C853 0%, #009624 100%);
-        color: white; font-weight: bold; border: none;
+    .stApp { background: #0e1117; }
+    
+    /* Κάρτα Εφαρμογής */
+    .app-card {
+        background: #161b22;
+        border-radius: 24px;
+        padding: 20px;
+        border: 1px solid #30363d;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
-    .action-card {
-        background: #1c1f26; border-radius: 15px; padding: 20px;
-        border: 1px solid #30363d; margin-top: 10px;
+    
+    /* Custom Buttons για Μενού */
+    .stButton>button {
+        width: 100%;
+        border-radius: 12px;
+        height: 3.5em;
+        background: #21262d;
+        color: #58a6ff;
+        border: 1px solid #30363d;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+    .stButton>button:active { background: #58a6ff; color: white; }
+    
+    /* Κουμπί Ανάλυσης (Action) */
+    .action-btn button {
+        background: linear-gradient(90deg, #238636, #2ea043) !important;
+        color: white !important;
+        border: none !important;
+    }
+    
+    .logo-text {
+        font-size: 32px; font-weight: 800; text-align: center;
+        background: linear-gradient(90deg, #58a6ff, #2ea043);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# API Setup
+# 3. Setup Gemini
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.title("💼 SnapDone Business")
-st.write("Ανέβασε ένα έγγραφο ή λογαριασμό για άμεση επεξεργασία.")
+# 4. App UI
+st.markdown('<div class="logo-text">SnapDone AI</div>', unsafe_allow_html=True)
 
-# Uploader (Ανοίγει κάμερα στο κινητό)
-file = st.file_uploader("", type=["jpg", "png", "jpeg"])
-
-if file:
-    img = Image.open(file)
-    st.image(img, use_container_width=True)
+with st.container():
+    st.markdown('<div class="app-card">', unsafe_allow_html=True)
     
-    st.markdown('<div class="action-card">', unsafe_allow_html=True)
-    st.subheader("Επιλέξτε Λειτουργία")
+    # Το label=" " κρύβει το άσχημο κείμενο. Το uploader στο κινητό ανοίγει κάμερα/gallery.
+    uploaded_file = st.file_uploader(" ", type=["jpg", "jpeg", "png"])
     
-    col1, col2 = st.columns(2)
-    with col1:
-        task_cal = st.button("📅 Εξαγωγή για Calendar")
-        task_ocr = st.button("📝 Ψηφιοποίηση Κειμένου")
-    with col2:
-        task_sum = st.button("🔍 Σύνοψη Εγγράφου")
-        task_pdf = st.button("📄 Δημιουργία PDF")
-
-    prompt = ""
-    if task_cal: prompt = "Βρες ημερομηνία λήξης και ποσό. Δώσε μου μόνο τα απαραίτητα για Calendar."
-    if task_ocr: prompt = "Κάνε OCR και δώσε μου όλο το κείμενο του εγγράφου καθαρά."
-    if task_sum: prompt = "Κάνε μια επαγγελματική σύνοψη των κυριότερων σημείων."
-    if task_pdf: prompt = "Μετέτρεψε το έγγραφο σε δομημένο κείμενο για αρχειοθέτηση PDF."
-
-    if prompt:
-        with st.spinner("🤖 Το AI επεξεργάζεται..."):
-            response = model.generate_content([f"{prompt} Απάντησε στα Ελληνικά.", img])
-            result = response.text
-            st.markdown("---")
-            st.markdown(result)
+    if uploaded_file:
+        img = Image.open(uploaded_file)
+        st.image(img, use_container_width=True)
+        
+        st.markdown("### 🛠️ Επιλέξτε Ενέργεια")
+        
+        # Το Μενού σου
+        col1, col2 = st.columns(2)
+        with col1:
+            mode_cal = st.button("📅 Ημερολόγιο")
+            mode_ocr = st.button("📝 Ψηφιοποίηση")
+        with col2:
+            mode_pdf = st.button("📄 Εξαγωγή PDF")
+            mode_sum = st.button("🔍 Περίληψη")
             
-            if task_pdf:
-                # Απλή λήψη ως κείμενο/PDF
-                st.download_button("📥 Λήψη Αρχείου", result, file_name="snapdone_export.txt")
+        # Επιλογή Prompt βάσει μενού
+        prompt = ""
+        if mode_cal: prompt = "Βρες ημερομηνίες και ποσά για καταχώρηση στο Calendar."
+        if mode_ocr: prompt = "Μετέτρεψε την εικόνα σε καθαρό κείμενο (OCR)."
+        if mode_pdf: prompt = "Οργάνωσε το κείμενο για επίσημο έγγραφο PDF."
+        if mode_sum: prompt = "Κάνε μια γρήγορη και επαγγελματική περίληψη."
+
+        if prompt:
+            with st.spinner("⏳ Επεξεργασία..."):
+                response = model.generate_content([f"{prompt} Απάντησε στα Ελληνικά.", img])
+                st.markdown("---")
+                st.write(response.text)
+                
     st.markdown('</div>', unsafe_allow_html=True)
