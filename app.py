@@ -6,7 +6,32 @@ from PIL import Image
 api_key = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=api_key)
 
-st.set_page_config(page_title="Snap-to-Done", page_icon="📸")
+st.set_page_config(
+    page_title="SnapDone AI", 
+    page_icon="🎯", 
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
+
+# Custom CSS για να φαίνεται σαν Mobile App
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f5f7f9;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 20px;
+        height: 3em;
+        background-color: #4CAF50;
+        color: white;
+        font-weight: bold;
+    }
+    /* Κρύβει το menu του Streamlit για να φαίνεται σαν native app */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
 
 st.title("📸 Snap-to-Done AI")
 st.write("Βγάλε μια φωτογραφία και θα σου πω τι πρέπει να κάνεις!")
