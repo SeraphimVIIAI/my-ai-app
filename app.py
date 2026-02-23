@@ -266,13 +266,18 @@ st.markdown("""
 # 3. GEMINI SETUP
 # ─────────────────────────────────────────────
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 # ─────────────────────────────────────────────
 # 4. HELPERS
 # ─────────────────────────────────────────────
 def ai(prompt: str, img) -> str:
-    r = model.generate_content([prompt + "\n\nΑπάντα πάντα στα Ελληνικά.", img])
+    import io as _io
+    buf = _io.BytesIO()
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+    img_part = {"mime_type": "image/jpeg", "data": buf.getvalue()}
+    r = model.generate_content([prompt + "\n\nΑπάντα πάντα στα Ελληνικά.", img_part])
     return r.text.strip()
 
 def make_pdf(title: str, body: str) -> bytes:
