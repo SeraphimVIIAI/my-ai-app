@@ -266,7 +266,35 @@ st.markdown("""
 # 3. GEMINI SETUP
 # ─────────────────────────────────────────────
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
+# Auto-detect working model
+@st.cache_resource
+def load_model():
+    candidates = [
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-flash-001",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash",
+        "gemini-1.0-pro-vision-latest",
+    ]
+    # Δες ποια models είναι διαθέσιμα
+    try:
+        available = [m.name.replace("models/","") for m in genai.list_models()
+                     if "generateContent" in m.supported_generation_methods]
+        # Προτίμησε flash models
+        for c in candidates:
+            if c in available:
+                return genai.GenerativeModel(c), c
+        # Fallback: πρώτο διαθέσιμο
+        if available:
+            return genai.GenerativeModel(available[0]), available[0]
+    except Exception:
+        pass
+    # Τελευταία επιλογή
+    return genai.GenerativeModel("gemini-1.5-flash"), "gemini-1.5-flash"
+
+model, model_name = load_model()
 
 # ─────────────────────────────────────────────
 # 4. HELPERS
@@ -368,11 +396,11 @@ DETECT_INFO = {
 # ─────────────────────────────────────────────
 
 # Logo
-st.markdown("""
+st.markdown(f"""
 <div class="snap-logo">
   <span class="icon">✦</span>
   <div class="title">SnapDone AI</div>
-  <div class="tagline">Scan · Analyse · Act</div>
+  <div class="tagline">Scan · Analyse · Act &nbsp;·&nbsp; {model_name}</div>
 </div>
 """, unsafe_allow_html=True)
 
